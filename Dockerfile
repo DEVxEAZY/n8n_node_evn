@@ -1,39 +1,36 @@
-# Use a imagem base do n8n
-FROM n8nio/n8n
+ADD file ... in /
+CMD ["/bin/sh"]
+ENV NODE_VERSION=20.15.0
+RUN /bin/sh -c addgroup -g
+ENV YARN_VERSION=1.22.22
+RUN /bin/sh -c apk add
+COPY docker-entrypoint.sh /usr/local/bin/ # buildkit
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["node"]
+COPY / / # buildkit
+RUN /bin/sh -c rm -rf
+WORKDIR /home/node
+ENV NODE_ICU_DATA=/usr/local/lib/node_modules/full-icu
+EXPOSE map[5678/tcp:{}]
+ARG N8N_VERSION=1.52.2
+RUN |1 N8N_VERSION=1.52.2 /bin/sh -c
+LABEL org.opencontainers.image.title=n8n
+LABEL org.opencontainers.image.description=Workflow Automation Tool
+LABEL org.opencontainers.image.source=https://github.com/n8n-io/n8n
+LABEL org.opencontainers.image.url=https://n8n.io
+LABEL org.opencontainers.image.version=1.52.2
+ENV N8N_VERSION=1.52.2
+ENV NODE_ENV=production
+ENV N8N_RELEASE_TYPE=stable
 
-# Instalar o módulo redis
+# Adicionando comandos solicitados
 RUN npm install redis
-
-# Instalar bibliotecas adicionais de automação web
 RUN npm install puppeteer cheerio axios
-
-# Instalar biblioteca para PostgreSQL
 RUN npm install pg
-
-# Definir variáveis de ambiente
 ENV NODE_FUNCTION_ALLOW_EXTERNAL=redis,puppeteer,cheerio,axios,pg
 
-# Comandos adicionais para configurar o n8n (exemplo)
-# Copiar arquivos de configuração, se necessário
-# COPY ./config.json /home/node/.n8n/
-
-# Exemplo de comando para iniciar o n8n (não obrigatório, pois a imagem base já cuida disso)
-# CMD ["n8n"]
-
-# Expor a porta padrão do n8n
-EXPOSE 5678
-
-# Adicionar comando de execução
-CMD ["sh", "-c", "docker run -it --rm \
-  --name n8n \
-  -p 5678:5678 \
-  -e DB_TYPE=postgresdb \
-  -e DB_POSTGRESDB_DATABASE=${POSTGRES_DATABASE} \
-  -e DB_POSTGRESDB_HOST=${POSTGRES_HOST} \
-  -e DB_POSTGRESDB_PORT=${POSTGRES_PORT} \
-  -e DB_POSTGRESDB_USER=${POSTGRES_USER} \
-  -e DB_POSTGRESDB_SCHEMA=${POSTGRES_SCHEMA} \
-  -e DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD} \
-  -v ~/.n8n:/home/node/.n8n \
-  docker.n8n.io/n8nio/n8n \
-  n8n start"]
+COPY docker-entrypoint.sh / # buildkit
+RUN |1 N8N_VERSION=1.52.2 /bin/sh -c
+ENV SHELL=/bin/sh
+USER node
+ENTRYPOINT ["tini" "--" "/docker-entrypoint.sh"]
